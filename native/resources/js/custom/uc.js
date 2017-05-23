@@ -1,5 +1,141 @@
+/** Utils **/
+(function(global) {
+	var Utils = function(){};
+    //
+	Utils.getMd5Value = function (str) {
+		return CryptoJS.MD5(CryptoJS.enc.Latin1.parse(str)).toString();
+	}
+	
+	Utils.getSaltMd5Value = function (str) {
+		return this.getMd5Value(str + '\xa3\xac\xa1\xa3fdjf,jkgfkl').toString();
+	}
+	
+	Utils.randomString = function (n) {
+		var text = "";
+		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+		for( var i=0; i < n; i++ )
+		{
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+		}
+		return text;
+	}
+	
+	Utils.nonce = function () {
+		var time_length = 13;
+		var random_length = 8;
+		if(arguments.length > 0)
+		{
+			time_length = parseInt(arguments[0]);
+		}
+		if(arguments.length > 1)
+		{
+			random_length = parseInt(arguments[1]);
+		}
+			
+		return (new Date().getTime() + '').substring(0, time_length) + ':' + this.randomString(random_length).toLowerCase();	
+	}
+	
+	Utils.expand = function (url) {
+		return url.replace(/(?:\{\{)[^\{^\}]+(?:\}\})/g, function (key) {var _key = key.replace(/(^\{*)|(\}*$)/g, '');
+			return postman.getGlobalVariable(_key) || postman.getEnvironmentVariable(_key) || key;
+		});
+	}
+    	
+	Utils.removeQueryString = function (url, key) {
+		return this.expand(url).replace(new RegExp('[\?\&]' + key + '\=[^\&]*'), '').replace(/\?\s*^/, '');
+	}
+	
+	Utils.parse64 = function (str){
+		return JSON.parse(CryptoJS.enc.Base64.parse(str).toString(CryptoJS.enc.Utf8));
+	}
+	
+	/**
+     * export to either browser or node.js
+     */
+    if (typeof define === 'function' && define.amd) {
+        define(function () { return Utils; });
+    } else if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = Utils;
+        }
+        exports.Utils = Utils;
+    } else {
+        global.Utils = Utils;
+    }
+})(this);
+ 
+/** STORAGE **/
+(function(global) {
+	var Storage = function (name) {
+		this.name = name;
+	}
+    
+	Storage.prototype.cache = function () {
+        return (postman && JSON.parse(postman.getEnvironmentVariable(this.name) || '{}')) || {}
+    }
+	
+	Storage.prototype.read = function (key) {
+        var _u = this.cache();
+        if($.isArray(key) === false)
+        {
+            key = [key];
+        }
+        for(var i = 0; i < key.length && _u; i++){
+            _u = _u[key[i]];
+        }
+        //
+        return _u;	
+    }
+	
+	Storage.prototype.object = function (key) {
+        var _u = this.read(key) || {};
+        //
+        return _u;	
+    }
+	
+	Storage.prototype.write = function (key, value) {
+        var _u = this.cache();
+        if($.isArray(key) === false)
+        {
+            key = [key];
+        }
+        var __u = _u;
+        for(var i = 0; i < key.length - 1; i++){
+            __u[key[i]] = __u[key[i]] || {};
+            __u = __u[key[i]];
+        }
+        __u[key[key.length - 1]] = value;
+        //
+        postman.setEnvironmentVariable(this.name, JSON.stringify(_u));
+    }
+	
+	Storage.prototype.merge = function (key, value) {
+        var _v = this.read(key);
+        JSON.stringify($.extend(true, _v, value));
+        this.write(key, _v);
+    }
+	
+	Storage.prototype.clear = function () {
+        postman.setEnvironmentVariable(this.name, '{}');
+    }
+	/**
+     * export to either browser or node.js
+     */
+    if (typeof define === 'function' && define.amd) {
+        define(function () { return Storage; });
+    } else if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = Storage;
+        }
+        exports.Storage = Storage;
+    } else {
+        global.Storage = Storage;
+    }
+})(this);
+
 /** UC **/
-(function(global) {    
+(function(global) {
 	var UC = function () {	
 		this.users = new Storage('USERS');
 	}
@@ -89,5 +225,47 @@
         exports.UC = UC;
     } else {
         global.UC = UC;
+    }
+})(this);
+
+/** CS **/
+(function(global) {
+	var CS = function (){
+		this.session = new Storage('SESSIONS');
+		this.token = new Storage('TOKENS');
+		this.dentry = new Storage('DENTRIES');    
+	}
+/**
+     * export to either browser or node.js
+     */
+    if (typeof define === 'function' && define.amd) {
+        define(function () { return CS; });
+    } else if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = CS;
+        }
+        exports.CS = CS;
+    } else {
+        global.CS = CS;
+    }
+})(this);
+
+/** Conversation **/
+(function(global) {
+	var CHAT = function (){
+		this.conversation = new Storage('CONVERSATION');
+	}
+	/**
+     * export to either browser or node.js
+     */
+    if (typeof define === 'function' && define.amd) {
+        define(function () { return CHAT; });
+    } else if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = CHAT;
+        }
+        exports.CHAT = CHAT;
+    } else {
+        global.CHAT = CHAT;
     }
 })(this);
