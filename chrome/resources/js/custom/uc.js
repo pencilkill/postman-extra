@@ -138,6 +138,7 @@
 (function(global) {
 	var UC = function () {	
 		this.users = new Storage('USERS');
+        this.btses = new Storage('BTSES');
 	}
 	
 	UC.prototype.mac = function (url, method, token) {
@@ -181,6 +182,25 @@
 		var token = this.users.read([key, 'token']);
 		
 		return this.bearer(token);
+	}
+    	
+	UC.prototype.bts = function (url, method, token) {
+        var url = Utils.expand(url);
+		var access_token = token['access_token'];
+		//
+		var mac_key = token['mac_key'];
+        var uri = url.replace(/^.*?\/\/[^\/]*(\/.*)$/g, '$1');
+		var host = url.replace(/^.*?\/\/([^\/]*)\/.*$/g, '$1');
+		//
+		var mac = CryptoJS.HmacSHA256([method, uri, host, ''].join('\n'), mac_key).toString(CryptoJS.enc.Base64);
+		//
+		return 'MAC id="' + access_token + '",mac="' + mac + '"';
+	}
+	
+	UC.prototype.ubts = function (url, method, key) {
+		var token = this.btses.read([key, 'token']);
+		
+		return this.mac(url, method, token);
 	}
 	
 	UC.prototype.open = function (token) {
