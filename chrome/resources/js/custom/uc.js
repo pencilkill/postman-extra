@@ -194,7 +194,7 @@
 		//
 		var mac = CryptoJS.HmacSHA256([method, uri, host, ''].join('\n'), mac_key).toString(CryptoJS.enc.Base64);
 		//
-		return 'MAC id="' + access_token + '",mac="' + mac + '"';
+		return 'BTS id="' + access_token + '",mac="' + mac + '"';
 	}
 	
 	UC.prototype.ubts = function (url, method, key) {
