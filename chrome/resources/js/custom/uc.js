@@ -171,20 +171,6 @@
 		return this.mac64(url, method, token);
 	}
 	
-	UC.prototype.amac = function (token) {
-		var access_token = token['access_token'];
-		var nonce = token['nonce'];
-		var mac = token['mac'];
-		//
-		return 'MAC id="' + access_token + '",nonce="' + nonce + '",mac="' + mac + '"';;
-	}
-	
-	UC.prototype.uamac = function (key) {
-		var token = this.users.read([key, 'token']);
-		
-		return this.amac(token);
-	}
-	
 	UC.prototype.bearer = function (token) {
 		var access_token = token['access_token'];
 		//
