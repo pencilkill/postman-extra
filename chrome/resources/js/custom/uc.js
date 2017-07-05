@@ -200,7 +200,7 @@
 	UC.prototype.ubts = function (url, method, key) {
 		var token = this.btses.read([key, 'token']);
 		
-		return this.mac(url, method, token);
+		return this.bts(url, method, token);
 	}
 	
 	UC.prototype.open = function (token) {
