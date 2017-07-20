@@ -140,19 +140,18 @@
 		this.users = new Storage('USERS');
         this.btses = new Storage('BTSES');
 	}
-	
-	UC.prototype.mac = function (url, method, token) {
-        var url = Utils.expand(url);
-		var access_token = token['access_token'];
-		var nonce = Utils.nonce();
-		//
-		var mac_key = token['mac_key'];
+    	
+	UC.prototype.mac = function (url, method, access_token, nonce, mac_key) {
         var uri = url.replace(/^.*?\/\/[^\/]*(\/.*)$/g, '$1');
 		var host = url.replace(/^.*?\/\/([^\/]*)\/.*$/g, '$1');
 		//
 		var mac = CryptoJS.HmacSHA256([nonce, method, uri, host, ''].join('\n'), mac_key).toString(CryptoJS.enc.Base64);
 		//
 		return 'MAC id="' + access_token + '",nonce="' + nonce + '",mac="' + mac + '"';
+	}
+	
+	UC.prototype.mac = function (url, method, token) {
+		return this.mac(url, method, token['access_token'], Utils.nonce(), token['mac_key']);
 	}
 	
 	UC.prototype.umac = function (url, method, key) {
