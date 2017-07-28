@@ -141,7 +141,7 @@
         this.btses = new Storage('BTSES');
 	}
     	
-	UC.prototype.mac = function (url, method, access_token, nonce, mac_key) {
+	UC.prototype.encryptMac = function (url, method, access_token, nonce, mac_key) {
         var uri = url.replace(/^.*?\/\/[^\/]*(\/.*)$/g, '$1');
 		var host = url.replace(/^.*?\/\/([^\/]*)\/.*$/g, '$1');
 		//
@@ -151,7 +151,7 @@
 	}
 	
 	UC.prototype.mac = function (url, method, token) {
-		return this.mac(url, method, token['access_token'], Utils.nonce(), token['mac_key']);
+		return this.encryptMac(url, method, token['access_token'], Utils.nonce(), token['mac_key']);
 	}
 	
 	UC.prototype.umac = function (url, method, key) {
