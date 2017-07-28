@@ -142,6 +142,8 @@
 	}
     	
 	UC.prototype.encryptMac = function (url, method, access_token, nonce, mac_key) {
+        var url = Utils.expand(url);
+        
         var uri = url.replace(/^.*?\/\/[^\/]*(\/.*)$/g, '$1');
 		var host = url.replace(/^.*?\/\/([^\/]*)\/.*$/g, '$1');
 		//
@@ -182,18 +184,20 @@
 		
 		return this.bearer(token);
 	}
-    	
-	UC.prototype.bts = function (url, method, token) {
+        	
+	UC.prototype.enctyptBts = function (url, method, access_token, mac_key) {
         var url = Utils.expand(url);
-		var access_token = token['access_token'];
-		//
-		var mac_key = token['mac_key'];
+
         var uri = url.replace(/^.*?\/\/[^\/]*(\/.*)$/g, '$1');
 		var host = url.replace(/^.*?\/\/([^\/]*)\/.*$/g, '$1');
 		//
 		var mac = CryptoJS.HmacSHA256([method, uri, host, ''].join('\n'), mac_key).toString(CryptoJS.enc.Base64);
 		//
 		return 'BTS id="' + access_token + '",mac="' + mac + '"';
+	}
+    	
+	UC.prototype.bts = function (url, method, token) {
+        return this.encryptMac(url, method, token['access_token'], token['mac_key']);
 	}
 	
 	UC.prototype.ubts = function (url, method, key) {
