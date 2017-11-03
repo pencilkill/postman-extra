@@ -1,17 +1,19 @@
 @echo off
 setlocal enabledelayedexpansion
 ::
+set "PATH=%~dp0;%PATH%"
+::
 set app=%1
 set resources="%~dp0resources"
 
 :: app directory
 pushd %app%
 
-set id=postman-custom-resources
-set key=text/javascript
+set id=/postman-custom-resources/
+set key=/text\/javascript/
 
 :: copy resource
-xcopy /yse %resources% %app%
+xcopy /yse %resources% "%app%"
 
 :: modify files, each version's file
 for /f "delims=, tokens=*" %%i in ('%~2') do (
@@ -25,42 +27,47 @@ goto:eof
 
 :modify
 setlocal enabledelayedexpansion
-set bak="%~dpn1"
-set /a ipos=0
-set /a kpos=0
-set /a pos=0
-::
-for /f "delims=: tokens=1" %%j in ('findstr /i /n %2 %1') do (
-	if !ipos! equ 0 (
-		set /a ipos=%%j-1
-	)
+
+set FILE_BAK="%~dpn1"
+
+set POS_ID=POS_ID
+set POS_KEY=POS_KEY
+
+call :first %2 %1 %POS_ID%
+call :last %3 %1 %POS_KEY%
+
+if %POS_ID% gtr 0 (
+    set /a POS_ID=%POS_ID%-1
 )
-::
-for /f "delims=: tokens=1" %%j in ('findstr /i /n %3 %1') do (set /a kpos=%%j)
-::
-if %ipos% equ 0 (
-	set /a ipos=%kpos%
+if %POS_ID% equ 0 (
+	set /a POS_ID=%POS_KEY%
+)
+if %POS_KEY% gtr 0 (
+	set /a POS_KEY=%POS_KEY%+1
 )
 ::
 ren %1 %~n1
 cd.>%1
-for /f "delims=" %%i in ('type %bak%') do (
-	set /a pos=!pos!+1
-	if !pos! leq !ipos! (
-		setlocal disabledelayedexpansion
-		echo %%i >> %1
-		endlocal enabledelayedexpansion
-	)
-	if !pos! equ !ipos! (
-		type %4 >> %1
-		echo. >> %1
-	)
-	if !pos! gtr !kpos! (
-		setlocal disabledelayedexpansion
-		echo %%i >> %1
-		endlocal enabledelayedexpansion
-	)
-)
-del %bak%
+
+head -n %POS_ID% %FILE_BAK% >> %1
+type %4 >> %1
+echo. >> %1
+tail -n +%POS_KEY% %FILE_BAK% >> %1
+
+del %FILE_BAK%
 endlocal disabledelayedexpansion
 goto:eof
+
+:first
+setlocal
+for /f %%i in ('gawk "%~1 {print NR; exit;}" %2') do (
+    endlocal & set "%~3=%%i" & goto:eof
+)
+endlocal & set "%~3=0" & goto:eof
+
+:last
+setlocal
+for /f %%i in ('gawk "%~1 {n=NR} END {print n}" %2') do (
+    endlocal & set "%~3=%%i" & goto:eof
+)
+endlocal & set "%~3=0" & goto:eof

@@ -138,20 +138,22 @@
 (function(global) {
 	var UC = function () {	
 		this.users = new Storage('USERS');
+        this.btses = new Storage('BTSES');
 	}
-	
-	UC.prototype.mac = function (url, method, token) {
+    	
+	UC.prototype.encryptMac = function (url, method, access_token, nonce, mac_key) {
         var url = Utils.expand(url);
-		var access_token = token['access_token'];
-		var nonce = Utils.nonce();
-		//
-		var mac_key = token['mac_key'];
+        
         var uri = url.replace(/^.*?\/\/[^\/]*(\/.*)$/g, '$1');
 		var host = url.replace(/^.*?\/\/([^\/]*)\/.*$/g, '$1');
 		//
 		var mac = CryptoJS.HmacSHA256([nonce, method, uri, host, ''].join('\n'), mac_key).toString(CryptoJS.enc.Base64);
 		//
 		return 'MAC id="' + access_token + '",nonce="' + nonce + '",mac="' + mac + '"';
+	}
+	
+	UC.prototype.mac = function (url, method, token) {
+		return this.encryptMac(url, method, token['access_token'], Utils.nonce(), token['mac_key']);
 	}
 	
 	UC.prototype.umac = function (url, method, key) {
@@ -171,20 +173,6 @@
 		return this.mac64(url, method, token);
 	}
 	
-	UC.prototype.amac = function (token) {
-		var access_token = token['access_token'];
-		var nonce = token['nonce'];
-		var mac = token['mac'];
-		//
-		return 'MAC id="' + access_token + '",nonce="' + nonce + '",mac="' + mac + '"';;
-	}
-	
-	UC.prototype.uamac = function (key) {
-		var token = this.users.read([key, 'token']);
-		
-		return this.amac(token);
-	}
-	
 	UC.prototype.bearer = function (token) {
 		var access_token = token['access_token'];
 		//
@@ -195,6 +183,27 @@
 		var token = this.users.read([key, 'token']);
 		
 		return this.bearer(token);
+	}
+        	
+	UC.prototype.enctyptBts = function (url, method, access_token, mac_key) {
+        var url = Utils.expand(url);
+
+        var uri = url.replace(/^.*?\/\/[^\/]*(\/.*)$/g, '$1');
+		var host = url.replace(/^.*?\/\/([^\/]*)\/.*$/g, '$1');
+		//
+		var mac = CryptoJS.HmacSHA256([method, uri, host, ''].join('\n'), mac_key).toString(CryptoJS.enc.Base64);
+		//
+		return 'BTS id="' + access_token + '",mac="' + mac + '"';
+	}
+    	
+	UC.prototype.bts = function (url, method, token) {
+        return this.encryptMac(url, method, token['access_token'], token['mac_key']);
+	}
+	
+	UC.prototype.ubts = function (url, method, key) {
+		var token = this.btses.read([key, 'token']);
+		
+		return this.bts(url, method, token);
 	}
 	
 	UC.prototype.open = function (token) {
