@@ -2,14 +2,18 @@
 
 set cmd="%~dp0update.cmd"
 
-:: Chrome Extensions
-set chrome="%localappdata%\Google\Chrome\User Data\Default\Extensions\fhbjgbiflinjbdggehcddcbncdddomop"
+::
+set extensionId=fhbjgbiflinjbdggehcddcbncdddomop
 
-if exist %chrome% (
+:: Chrome Extensions
+set location="%localappdata%\Google\Chrome\User Data\Default\Extensions\%extensionId%"
+
+::
+if exist %location% (
     echo.
     echo Chrome Extensions Found ...
     echo.
-	call %cmd% %chrome% "dir /s /b "%~dp0override\*.html""
+	call %cmd% %location% "dir /s /b "%~dp0override\*.html""
 )
 
 goto:eof
